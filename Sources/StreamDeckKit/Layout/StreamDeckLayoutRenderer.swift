@@ -77,13 +77,6 @@ final class StreamDeckLayoutRenderer {
         log("Layout did change")
         let caps = device.capabilities
 
-        // Devices with a continuous screen (e.g. Plus/Plus XL/Neo) must update
-        // via full-screen frames to keep keys and window in sync.
-        if device.supports(.setScreenImage) {
-            device.setScreenImage(image, scaleAspectFit: false)
-            return
-        }
-
         guard !dirtyViews.isEmpty else {
             log("no dirty views")
             return
@@ -95,6 +88,15 @@ final class StreamDeckLayoutRenderer {
 
         guard !dirtyViews.contains(.screen) else {
             log("complete screen required")
+            device.setScreenImage(image, scaleAspectFit: false)
+            return
+        }
+
+        // Keys and window share one panel on Plus/Plus XL/Neo but are updated by
+        // separate transfers. A change spanning both would tear, so push one frame.
+        if device.supports(.setScreenImage), caps.windowRect != nil,
+           dirtyViews.contains(where: \.isKey), dirtyViews.contains(where: \.isWindow) {
+            log("keys and window changed together, complete screen required")
             device.setScreenImage(image, scaleAspectFit: false)
             return
         }

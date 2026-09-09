@@ -33,6 +33,18 @@ enum DirtyMarker: Equatable, CustomDebugStringConvertible {
     case window
     case windowArea(CGRect)
 
+    var isKey: Bool {
+        if case .key = self { return true }
+        return false
+    }
+
+    var isWindow: Bool {
+        switch self {
+        case .window, .windowArea: return true
+        case .screen, .key: return false
+        }
+    }
+
     public var debugDescription: String {
         switch self {
         case .screen:
